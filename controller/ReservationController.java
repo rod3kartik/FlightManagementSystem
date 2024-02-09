@@ -24,6 +24,11 @@ public class ReservationController {
     public Reservation getReservationByPnr(@PathVariable String pnr) {
         return this.dao.getReservation(pnr);
     }
+    @PostMapping("/cancel/{pnr}")
+    public String cancelReservationByPnr(@PathVariable String pnr) {
+        return this.dao.cancelReservation(pnr);
+    }
+
 
     @PostMapping("/add")
     public String addReservation(@RequestBody Reservation request){

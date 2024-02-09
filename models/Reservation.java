@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @DynamoDBTable(tableName = "Reservation-Info")
 public class Reservation {
     @DynamoDBAttribute
+    private boolean cancelled;
+    @DynamoDBAttribute
     private String flightNumber;
     @DynamoDBAttribute
     private String email;
