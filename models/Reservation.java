@@ -29,7 +29,15 @@ public class Reservation {
     @DynamoDBAttribute
     private String lastName;
     @DynamoDBAttribute
-    private String address;
+    private String to;
     @DynamoDBAttribute
-    private String zipCode;
+    private String from;
+    @DynamoDBAttribute
+    private String departTime;
+    @DynamoDBAttribute
+    private String arrivalTime;
+    @DynamoDBAttribute
+    private String travelDate;
+    @DynamoDBAttribute
+    private String bookingDate;
 }

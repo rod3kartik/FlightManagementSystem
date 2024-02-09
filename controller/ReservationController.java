@@ -1,6 +1,7 @@
 package com.example.flightreservationsystem.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import com.example.flightreservationsystem.models.Reservation;
@@ -27,13 +28,18 @@ public class ReservationController {
     @PostMapping("/add")
     public String addReservation(@RequestBody Reservation request){
         try {
+            String requestTime = DateTime.now().toString();
             Reservation reservation = Reservation.builder().email(request.getEmail())
-                    .address(request.getAddress())
+                    .arrivalTime(request.getArrivalTime())
                     .pnrNo(request.getPnrNo())
+                    .bookingDate(requestTime)
                     .flightNumber(request.getFlightNumber())
+                    .departTime(request.getDepartTime())
                     .firstName(request.getFirstName())
                     .lastName(request.getLastName())
-                    .zipCode(request.getZipCode())
+                    .from(request.getFrom())
+                    .travelDate(request.getTravelDate())
+                    .to(request.getTo())
                     .build();
             return this.dao.makeReservation(reservation);
         }
