@@ -1,10 +1,13 @@
 package com.example.flightreservationsystem.controller;
 
+import com.amazonaws.util.StringUtils;
+import com.example.flightreservationsystem.models.CreateReservationModel;
+import com.example.flightreservationsystem.models.UpdateReservationModel;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import com.example.flightreservationsystem.models.Reservation;
+import com.example.flightreservationsystem.models.ReservationDynamoModel;
 import com.example.flightreservationsystem.dao.FlightSystemDao;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,22 +24,54 @@ public class ReservationController {
     private FlightSystemDao dao;
 
     @GetMapping("/view/{pnr}")
-    public Reservation getReservationByPnr(@PathVariable String pnr) {
+    public ReservationDynamoModel getReservationByPnr(@PathVariable String pnr) throws Exception {
+        if(this.dao.getReservation(pnr) == null){
+            throw new Exception("Not a valid pnr");
+        }
         return this.dao.getReservation(pnr);
     }
+
     @PostMapping("/cancel/{pnr}")
     public String cancelReservationByPnr(@PathVariable String pnr) {
         return this.dao.cancelReservation(pnr);
     }
-
-
-    @PostMapping("/add")
-    public String addReservation(@RequestBody Reservation request){
+    @PostMapping("/update")
+    public String updateReservation(@RequestBody UpdateReservationModel request) throws Exception {
+        if(this.dao.getReservation(request.getPnrNo()) == null){
+            throw new Exception("Not a valid pnr");
+        }
+        ReservationDynamoModel existingReservation = this.dao.getReservation(request.getPnrNo());
+        if(existingReservation.isCancelled()){
+            throw new Exception("Cancelled reservation cannot be modified");
+        }
         try {
             String requestTime = DateTime.now().toString();
-            Reservation reservation = Reservation.builder().email(request.getEmail())
+            ReservationDynamoModel reservationDynamoModel = ReservationDynamoModel.builder()
+                    .arrivalTime(getPropertiesFromUser(request.getArrivalTime(),existingReservation.getArrivalTime()))
+                    .bookingDate(requestTime)
+                    .pnrNo(getPropertiesFromUser(request.getPnrNo(),existingReservation.getPnrNo()))
+                    .flightNumber(getPropertiesFromUser(request.getFlightNumber(),existingReservation.getFlightNumber()))
+                    .departTime(getPropertiesFromUser(request.getDepartTime(),existingReservation.getDepartTime()))
+                    .from(getPropertiesFromUser(request.getFrom(),existingReservation.getFrom()))
+                    .travelDate(getPropertiesFromUser(request.getTravelDate(),existingReservation.getTravelDate()))
+                    .to(getPropertiesFromUser(request.getTo(),existingReservation.getTo()))
+                    .build();
+
+            return this.dao.updateReservation(reservationDynamoModel);
+        }
+        catch(Exception e){
+            log.info("Exception while updating reservation {}",request.getPnrNo(), e);
+            return e.toString();
+        }
+    }
+
+    @PostMapping("/add")
+    public String addReservation(@RequestBody CreateReservationModel request){
+        try {
+            String requestTime = DateTime.now().toString();
+            ReservationDynamoModel reservationDynamoModel = ReservationDynamoModel.builder()
+                    .email(request.getEmail())
                     .arrivalTime(request.getArrivalTime())
-                    .pnrNo(request.getPnrNo())
                     .bookingDate(requestTime)
                     .flightNumber(request.getFlightNumber())
                     .departTime(request.getDepartTime())
@@ -46,7 +81,7 @@ public class ReservationController {
                     .travelDate(request.getTravelDate())
                     .to(request.getTo())
                     .build();
-            return this.dao.makeReservation(reservation);
+            return this.dao.makeReservation(reservationDynamoModel);
         }
         catch(Exception e){
             log.info("Exception while making a reservation", e);
@@ -54,4 +89,7 @@ public class ReservationController {
         }
     }
 
+    private String getPropertiesFromUser(String newProperty, String oldProperty){
+        return StringUtils.isNullOrEmpty(newProperty) ? oldProperty : newProperty;
+    }
 }

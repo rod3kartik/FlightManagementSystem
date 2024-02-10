@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @DynamoDBTable(tableName = "Reservation-Info")
-public class Reservation {
+public class ReservationDynamoModel {
     @DynamoDBAttribute
     private boolean cancelled;
     @DynamoDBAttribute
