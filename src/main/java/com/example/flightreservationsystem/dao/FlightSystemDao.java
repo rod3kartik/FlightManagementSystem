@@ -24,6 +24,12 @@ public class FlightSystemDao {
         return response.getPnrNo();
     }
 
-
+    public String cancelReservation(String pnr){
+        Reservation request = Reservation.builder().pnrNo(pnr).build();
+        Reservation existingReservation = dynamoDBMapper.load(request);
+        existingReservation.setCancelled(true);
+        dynamoDBMapper.save(existingReservation);
+        return existingReservation.getPnrNo();
+    }
 }
 
